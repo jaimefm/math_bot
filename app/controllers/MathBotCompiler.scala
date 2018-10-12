@@ -3,25 +3,29 @@ package controllers
 import java.net.URLDecoder
 
 import actors._
-import actors.convert_flow.{ CompilerRequestConvertFlow, CompilerResponseConvertFlow }
-import actors.messages.{ ClientRobotState, PreparedStepData }
-import akka.actor.{ Actor, ActorSystem, Props }
+import actors.convert_flow.{CompilerRequestConvertFlow, CompilerResponseConvertFlow, UpdateAccessFlow}
+import actors.messages.auth.SessionAuthorized
+import actors.messages.{ClientRobotState, PreparedStepData}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.http.scaladsl.util.FastFuture
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
+import com.google.inject.name.Named
 import compiler.processor.Frame
-import compiler.{ Cell, Point }
+import compiler.{Cell, Point}
 import configuration.CompilerConfiguration
 import javax.inject.Inject
 import loggers.MathBotLogger
-import daos.PlayerTokenDAO
+import daos.{PlayerAccountDAO, PlayerTokenDAO, SessionDAO}
 import models._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.streams.ActorFlow
 import play.api.mvc._
-import play.api.{ Configuration, Environment }
+import play.api.{Configuration, Environment}
 import types.TokenId
+import utils.SecureIdentifier
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -86,7 +90,10 @@ class MathBotCompiler @Inject()()(implicit system: ActorSystem,
                                   mathBotLogger: MathBotLogger,
                                   environment: Environment,
                                   configuration: Configuration,
-                                  playerTokenDAO: PlayerTokenDAO)
+                                  playerTokenDAO: PlayerTokenDAO,
+                                  playerAccountDAO: PlayerAccountDAO,
+                                  sessionDAO: SessionDAO,
+                                  @Named(ActorTags.playerAccount) playerAccountActor: ActorRef)
     extends Controller
     with utils.SameOriginCheck {
 
@@ -101,7 +108,7 @@ class MathBotCompiler @Inject()()(implicit system: ActorSystem,
 
   def wsPath(tokenId: TokenId, connection: String): Action[AnyContent] = Action { implicit request: RequestHeader =>
     val url = connection match {
-      case p if p == "compiler" => routes.MathBotCompiler.compileWs(tokenId).webSocketURL()
+      case p if p == "compiler" => routes.MathBotCompiler.compileWs().webSocketURL()
       case p if p == "videohint" => routes.VideoHintController.videoSocket().webSocketURL()
     }
     val changeSsl =
@@ -109,30 +116,35 @@ class MathBotCompiler @Inject()()(implicit system: ActorSystem,
     Ok(changeSsl)
   }
 
-  def compileWs(encodedTokenId: String): WebSocket =
-    WebSocket.accept[JsValue, JsValue] {
-      case rh if sameOriginCheck(rh) =>
-        CompilerRequestConvertFlow()
-          .via(
-            ActorFlow.actorRef(
-              out =>
-                CompilerActor.props(out,
-                                    URLDecoder.decode(encodedTokenId, "UTF-8"),
-                                    playerTokenDAO,
-                                    statsActor,
-                                    levelActor,
-                                    mathBotLogger,
-                                    compilerConfiguration)
+  def compileWs(): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { request =>
+    request.cookies.get("player-session").map(c => SecureIdentifier(c.value)) match {
+      case Some(sessionId) =>
+        sessionDAO.find(sessionId).map {
+          case Some(session) =>
+            Right(
+              CompilerRequestConvertFlow()
+                .via(
+                  ActorFlow.actorRef(
+                    out =>
+                      CompilerActor.props(out,
+                                          session.playerTokenId,
+                                          playerTokenDAO,
+                                          statsActor,
+                                          levelActor,
+                                          mathBotLogger,
+                                          compilerConfiguration)
+                  )
+                )
+                .alsoTo(UpdateAccessFlow(session.playerTokenId, playerAccountActor))
+                .via(
+                  CompilerResponseConvertFlow()
+                )
             )
-          )
-          .via(
-            CompilerResponseConvertFlow()
-          )
-      case rejected =>
-        ActorFlow.actorRef(out => {
-          SameOriginFailedActor.props(out, mathBotLogger)
-        })
+          case None => Left(Unauthorized("Unable to locate player token"))
+        }
+      case None => FastFuture.successful(Left(Unauthorized("No session present")))
     }
+  }
 
   def compile(encodedTokenId: String) = Action.async { implicit request =>
     class FakeActor extends Actor {

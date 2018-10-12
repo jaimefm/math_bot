@@ -1,7 +1,7 @@
 <template>
   <div class="col-4 steps">
     <div class="row">
-      <h2 class="header">{{`${planetName}`}}. {{ parseCamelCase(level) }}</h2>
+      <h2 class="header"><span v-if="level !== 'Sandbox'">{{`${planetName}`}}.</span> {{ parseCamelCase(level) }}</h2>
     </div>
     <div class="row steps-container">
       <div class="btn-group-vertical">

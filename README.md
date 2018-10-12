@@ -74,17 +74,24 @@ The project has been built thus far with Intellij
 
 ### Getting started
 
-#### Setting up front end keys
+#### Github and Google api keys
+You will need keys and secrets for these services
 
-1) Inside `ui/src` add a file named `keys.js`
+- Google API w/Google+ enabled
+- Github
+- SendGrid
 
-2) Copy the contents of `ui/src/example-keys.js` into `keys.js`
+Add the following to your environment, then restart your OS
+```
+ mathbot_oauth_google_clientId="your_id"
+ mathbot_oauth_google_clientSecret="your_secret"
+ mathbot_oauth_github_clientId="your_id"
+ mathbot_oauth_github_clientSecret="your_secret"
+ mathbot_admin_custodianEmail="your_email"
+ mathbot_sendgrid_secretKey="your_sendgrid_secret"
+```
 
-3) Fill out fields, you will need to setup an [Auth0](https://auth0.com/) account for development. 
-
-* Be sure to leave `example-key.js` in place before pushing. `Keys.js` is being ignored.
-
-* When deployed we will use our Auth0 account using environment variables. 
+FYI - if you are using Intellij be sure to do a full restart of your system after you set theses env variables.
 
 #### Starting and build app
 

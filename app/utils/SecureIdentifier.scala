@@ -3,25 +3,25 @@ package utils
 import java.security.SecureRandom
 import java.util.Base64
 
-import org.bson.{ BsonReader, BsonWriter }
-import org.bson.codecs.{ Codec, DecoderContext, EncoderContext }
-import play.api.libs.json.{ Format, JsError, JsSuccess }
+import org.bson.{BsonReader, BsonWriter}
+import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
+import play.api.libs.json.{Format, JsError, JsSuccess}
 import spray.json.JsonFormat
 
+class SecureIdentifier private (aId: Seq[Byte]) {
+  private val id: Seq[Byte] = aId
 
-class SecureIdentifier private (aId : Seq[Byte]) {
-  private val id : Seq[Byte] = aId
+  def toByteArray: Array[Byte] = id.toArray
 
-  def toByteArray : Array[Byte] = id.toArray
+  override def toString: String = SecureIdentifier.encoder.encodeToString(id.to[Array])
 
-  override def toString : String = SecureIdentifier.encoder.encodeToString(id.to[Array])
+  override def equals(obj: scala.Any): Boolean =
+    super.equals(obj) || (obj match {
+      case that: SecureIdentifier => that.id.equals(this.id)
+      case _ => false
+    })
 
-  override def equals(obj : scala.Any) : Boolean = super.equals(obj) || (obj match {
-    case that : SecureIdentifier => that.id.equals(this.id)
-    case _ => false
-  })
-
-  override def hashCode() : Int = this.id.hashCode()
+  override def hashCode(): Int = this.id.hashCode()
 }
 
 object SecureIdentifier {
@@ -31,29 +31,29 @@ object SecureIdentifier {
   private val random = new SecureRandom
 
   implicit object SecureIdentifierFormat extends JsonFormat[SecureIdentifier] {
-    import spray.json.{ JsString, JsValue }
+    import spray.json.{JsString, JsValue}
 
-    override def read(json : JsValue) : SecureIdentifier = json match {
+    override def read(json: JsValue): SecureIdentifier = json match {
       case JsString(base64String) => SecureIdentifier(base64String)
       case _ => SecureIdentifier(0) // Effectively a worthless identifier
     }
 
-    override def write(obj : SecureIdentifier) : JsValue = JsString(obj.toString)
+    override def write(obj: SecureIdentifier): JsValue = JsString(obj.toString)
   }
 
-  implicit val secureIdentifierPlayFormatter : Format[SecureIdentifier] = new Format[SecureIdentifier] {
-    import play.api.libs.json.{JsValue, JsString, JsResult}
-    override def writes(o : SecureIdentifier) : JsValue = JsString(o.toString)
+  implicit val secureIdentifierPlayFormatter: Format[SecureIdentifier] = new Format[SecureIdentifier] {
+    import play.api.libs.json.{JsResult, JsString, JsValue}
+    override def writes(o: SecureIdentifier): JsValue = JsString(o.toString)
 
-    override def reads(json : JsValue) : JsResult[SecureIdentifier] = json match {
+    override def reads(json: JsValue): JsResult[SecureIdentifier] = json match {
       case JsString(base64String) => JsSuccess(SecureIdentifier(base64String))
       case _ => JsError("Invalid SecureIdentifier")
     }
   }
 
-  def apply(aId : String) : SecureIdentifier = new SecureIdentifier(decoder.decode(aId).toSeq)
+  def apply(aId: String): SecureIdentifier = new SecureIdentifier(decoder.decode(aId).toSeq)
 
-  def apply(size : Int) : SecureIdentifier = {
+  def apply(size: Int): SecureIdentifier = {
     val buffer = Array.fill[Byte](size)(0)
     random.nextBytes(buffer)
     new SecureIdentifier(buffer.toSeq)
@@ -61,23 +61,22 @@ object SecureIdentifier {
 
   def empty = SecureIdentifier(0)
 
-  def fromStringOpt(sessionId : String) : Option[SecureIdentifier] = {
+  def fromStringOpt(sessionId: String): Option[SecureIdentifier] = {
     try {
       Some(SecureIdentifier(sessionId))
-    }
-    catch {
-      case _ : IllegalArgumentException =>
+    } catch {
+      case _: IllegalArgumentException =>
         None
     }
   }
 
   class SecureIdentifierCodec extends Codec[SecureIdentifier] {
-    override def encode(writer : BsonWriter, value : SecureIdentifier, encoderContext : EncoderContext) : Unit = writer.writeString(value.toString)
+    override def encode(writer: BsonWriter, value: SecureIdentifier, encoderContext: EncoderContext): Unit =
+      writer.writeString(value.toString)
 
-    override def getEncoderClass : Class[SecureIdentifier] = classOf[SecureIdentifier]
+    override def getEncoderClass: Class[SecureIdentifier] = classOf[SecureIdentifier]
 
-    override def decode(reader : BsonReader, decoderContext : DecoderContext) = SecureIdentifier(reader.readString())
+    override def decode(reader: BsonReader, decoderContext: DecoderContext) = SecureIdentifier(reader.readString())
   }
-
 
 }

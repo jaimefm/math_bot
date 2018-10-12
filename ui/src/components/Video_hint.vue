@@ -6,7 +6,6 @@
     :hide-header="true"
     :hide-footer="true"
     :lazy="true"
-    @shown="videoHint.startVideo()"
   >
     <img
       class="dialog-button close-congrats"
@@ -18,12 +17,12 @@
     <youtube
       class="player"
       :video-id="videoHint.currentVideo"
-      :player-vars="{ autoplay: 1 }"
+      :player-vars="{ autoplay: 1, rel: 0 }"
       :player-height="'100%'"
       :player-width="'100%'"
       @ended="videoHint.hideVideo()"
     ></youtube>
-    <social-sharing :message="`Checkout Mathbot.com!`"></social-sharing>
+    <social-sharing></social-sharing>
   </b-modal>
 </template>
 

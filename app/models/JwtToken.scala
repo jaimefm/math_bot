@@ -1,10 +1,6 @@
 package models
 
-case class JwtToken(iss: String,
-                    sub: String,
-                    email: String,
-                    name: String,
-                    picture: String) {
+case class JwtToken(iss: String, sub: String, email: String, name: String, picture: Option[String] = None) {
   def getIssuerShortName: String = {
     iss match {
       case "https://accounts.google.com" => "google-oauth2"
@@ -13,4 +9,5 @@ case class JwtToken(iss: String,
       case "https://auth0.mathbot.com" => "auth0"
     }
   }
+  def playerTokenId = s"${getIssuerShortName}|$sub"
 }

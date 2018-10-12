@@ -17,8 +17,6 @@
         <grid></grid>
       </div>
 
-      <messages></messages>
-
       <div class="row box" style="padding: 0;">
         <popover-bucket v-if="functionAreaShowing === 'editFunction' || functionAreaShowing === 'addFunction'"></popover-bucket>
         <editmain v-if="functionAreaShowing === 'editMain'"></editmain>
@@ -62,7 +60,7 @@ export default {
       return this.$store.getters.getRunCompiled
     },
     userProfile () {
-      return JSON.parse(localStorage.getItem('profile'))
+      return this.auth.userProfile
     },
     tokenId () {
       return this.$store.getters.getTokenId

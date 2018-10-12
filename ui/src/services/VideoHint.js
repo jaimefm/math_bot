@@ -10,10 +10,34 @@ class VideoHint {
     this.socket = api.videoHintSocket
   }
 
+  freeHintsShown = []
   currentVideo = null
 
-  showVideo (videoURL) {
-    if (videoURL) this.setCurrentVideo(videoURL)
+  showFreeHint (url) {
+    if (!this.freeHintsShown.includes(url)) {
+      this.freeHintsShown.push(url)
+      this.setCurrentVideo(url)
+      this.showVideo()
+    }
+  }
+
+  showHint () {
+    this.socket.getHint(res => {
+      if (res.status !== 'no-videos') {
+        this.$store.dispatch('addVideoTimer', res.remainingTime)
+        this.setCurrentVideo(res.videoURL)
+        this.showVideo()
+      } else {
+        const messageBuilder = {
+          type: 'warn',
+          msg: 'No hints available'
+        }
+        this.$store.dispatch('addMessage', messageBuilder)
+      }
+    })
+  }
+
+  showVideo () {
     this.context.$root.$emit('bv::show::modal', 'video-modal')
   }
 
@@ -24,23 +48,6 @@ class VideoHint {
 
   setCurrentVideo (url) {
     this.currentVideo = getIdFromURL(url)
-  }
-
-  startVideo () {
-    if (this.currentVideo === null) {
-      this.socket.getHint(res => {
-        if (res.status !== 'no-videos') {
-          this.$store.dispatch('addVideoTimer', res.remainingTime)
-          this.setCurrentVideo(res.videoURL)
-        } else {
-          const messageBuilder = {
-            type: 'warn',
-            msg: 'No hints available'
-          }
-          this.$store.dispatch('addMessage', messageBuilder)
-        }
-      })
-    }
   }
 }
 

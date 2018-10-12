@@ -1,6 +1,7 @@
 package loggers
 
 import akka.http.scaladsl.model.{ StatusCode, Uri }
+import javassist.runtime.Desc
 import utils.SecureIdentifier
 
 import scala.reflect.ClassTag
@@ -37,9 +38,12 @@ object SemanticLog {
     final val invalidMessage = 'invalidMessage
     final val classTag = 'classTag
     final val oauth = 'oauth
+    final val collection = 'collection
+    final val field = 'field
   }
 
   object tags {
+
     def `class`[T](classTag: ClassTag[T]): (Symbol, String) = symbols.classTag -> classTag.runtimeClass.getCanonicalName
     def actorBecomes(name: String) = Seq(symbols.actorBecomes -> name)
     def description(d: String) : (Symbol, String) = symbols.description -> d
@@ -51,6 +55,8 @@ object SemanticLog {
       Seq(symbols.outboundUri -> uri.toString(), symbols.httpStatus -> status.value, symbols.httpBody -> body)
     def oauth(oauthSource: String, desc: String) = Seq(symbols.oauth -> oauthSource, description(desc))
     def message(msg: Any): Seq[(Symbol, String)] = Seq(symbols.message -> msg.toString)
+    def index(col : Symbol, fld : Symbol, desc : String) = Seq(symbols.collection -> col.name, symbols.field -> fld.name) :+ description(desc)
+    def index(col : Symbol, fld : Symbol, c: Throwable, desc : String) = Seq(symbols.collection -> col.name, symbols.field -> fld.name) ++ exception(c, desc)
   }
 
   implicit class loggerExtensions(innerLog: SemanticLog) {

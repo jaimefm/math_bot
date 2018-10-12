@@ -13,7 +13,7 @@ import loggers.{ AkkaSemanticLog, SemanticLog }
 import models.JwtToken
 import org.joda.time.{ Duration, Instant }
 import pdi.jwt.JwtAlgorithm.RS256
-import pdi.jwt.JwtJson
+import pdi.jwt.{ JwtJson, JwtOptions }
 import play.api.libs.json.{ JsObject, JsString, Json, OFormat }
 
 import scala.concurrent.{ Await, ExecutionContext, duration }
@@ -21,9 +21,9 @@ import scala.util.{ Failure, Success, Try }
 
 
 class JwtTokenParser @Inject() (
-                      val config : GoogleApiConfig,
-                      implicit val system : ActorSystem
-                    )  {
+                                 val config : GoogleApiConfig,
+                                 implicit val system : ActorSystem
+                               )  {
 
 
   private val logger = new AkkaSemanticLog(system, this.getClass).withClass[JwtTokenParser]
@@ -41,7 +41,7 @@ class JwtTokenParser @Inject() (
         response <- http.singleRequest(
           HttpRequest(
             method = HttpMethods.GET,
-            uri = config.oauthPemUri
+            uri = config.oauthPemUrl
           )
         )
         jsonOrError <- AkkaToPlayMarshaller.unmarshalToPlayJson(response)
@@ -63,7 +63,7 @@ class JwtTokenParser @Inject() (
               }
 
           case Left(None) =>
-            throw GoogleOAuthException(s"Unable to retrieve Google OAuth PEM signature because the endpoint at ${config.oauthPemUri} did not provide valid json.")
+            throw GoogleOAuthException(s"Unable to retrieve Google OAuth PEM signature because the endpoint at ${config.oauthPemUrl} did not provide valid json.")
 
           case Right((code, reason)) =>
             throw new GoogleOAuthException("Unable to retrieve Google OAuth PEM signature certificates", code , reason)
@@ -110,4 +110,8 @@ class JwtTokenParser @Inject() (
         None
     }
   }
+
+  def parse(encodedToken : String) : Option[JwtToken] =
+    JwtJson.decodeJson(encodedToken, JwtOptions(signature = false)).toOption.flatMap(_.asOpt[JwtToken])
+
 }

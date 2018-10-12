@@ -20,4 +20,5 @@ object AuthFormatters {
   implicit val needsAuthorizationFormat : Format[NeedsAuthorization] = Json.format[NeedsAuthorization]
   implicit val sessionAuthorizedFormat : Format[SessionAuthorized] = Json.format[SessionAuthorized]
   implicit val usernameAndPasswordFormate : Format[UsernameAndPassword] = Json.format[UsernameAndPassword]
+  implicit val auth0MigrateFormat : Format[Auth0MigrateNeeded] = Json.format[Auth0MigrateNeeded]
 }

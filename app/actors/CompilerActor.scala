@@ -3,6 +3,7 @@ package actors
 import actors.LevelGenerationActor.{ GetGridMap, GetStep }
 import actors.StatsActor.{ StatsDoneUpdating, UpdateStats }
 import actors.messages._
+import actors.messages.playeraccount.UpdateAccountAccess
 import akka.actor.{ Actor, ActorRef, Props }
 import akka.pattern.ask
 import akka.util.Timeout
@@ -192,14 +193,16 @@ class CompilerActor @Inject()(out: ActorRef, tokenId: TokenId)(
           .map(frame => (frame._1, checkForSuccess(currentCompiler, frame._1), frame._2))
 
         checkedFrames.find(f => f._2).map(_._3) match {
-          case Some(index) => (
-            checkedFrames.takeWhile(_._3 <= index).map(_._1), // Just the frames up until success
-            true // program completion
+          case Some(index) =>
+            (
+              checkedFrames.takeWhile(_._3 <= index).map(_._1), // Just the frames up until success
+              true // program completion
             )
-          case _ => (
-            frames, // All the frames
-            robotFrames.length < takeSteps || maxStepsReached // If the program stopped early or hit max frame count
-          )
+          case _ =>
+            (
+              frames, // All the frames
+              robotFrames.length < takeSteps || maxStepsReached // If the program stopped early or hit max frame count
+            )
         }
       } else {
         (
@@ -254,7 +257,7 @@ class CompilerActor @Inject()(out: ActorRef, tokenId: TokenId)(
     case _ => out ! ActorFailed("Unknown command submitted to compiler")
   }
 
-  override def postStop() : Unit = {
+  override def postStop(): Unit = {
     logger.LogInfo(className, "Actor Stopped")
   }
 }

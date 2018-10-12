@@ -14,9 +14,6 @@ import BottomSection from './BottomSection'
 export default {
   name: 'Marketing',
   computed: {
-    auth () {
-      return this.$store.getters.getAuth
-    }
   },
   components: {
     TopSection,
@@ -25,10 +22,7 @@ export default {
   },
   methods: {
     goToSite () {
-      if (!this.auth.authenticated) {
-        this.auth.login()
-      }
-      this.$router.push({path: '/profile'})
+      this.$router.push({path: '/auth'})
     }
   }
 }

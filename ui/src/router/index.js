@@ -6,9 +6,12 @@ import Robot from '@/components/Robot'
 import Profile from '@/components/Profile'
 import Marketing from '@/components/marketing/Marketing'
 import Callback from '@/components/Callback'
+import Auth from '@/components/Auth'
 import BootstrapVue from 'bootstrap-vue'
 import VueYouTubeEmbed from 'vue-youtube-embed'
+import VueForm from 'vue-form'
 import VueSocialSharing from 'vue-social-sharing'
+import VueShortKey from 'vue-shortkey'
 
 import $store from '../store/store'
 
@@ -16,16 +19,39 @@ import $store from '../store/store'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
+Vue.use(VueShortKey)
 Vue.use(VueSocialSharing)
 Vue.use(VueYouTubeEmbed)
 Vue.use(BootstrapVue)
 Vue.use(Router)
 Vue.use(VueResource)
 Vue.use(Sortable)
+Vue.use(VueForm, {
+  inputClasses: {
+    valid: 'form-control-success',
+    invalid: 'form-control-danger'
+  },
+  validators: {
+    matches (value, attrValue) {
+      if (!attrValue) {
+        return true
+      }
+      return value === attrValue
+    },
+    'password-strength' (value) {
+      return value.length > 4
+    }
+  }
+})
 
 const router = new Router({
   mode: 'history',
   routes: [
+    {
+      path: '/auth',
+      name: 'Auth',
+      component: Auth
+    },
     {
       path: '/robot',
       name: 'Robot',
@@ -65,7 +91,7 @@ router.beforeEach((to, from, next) => {
   router.options.routes.forEach((route) => {
     // If this is the current route and it's secure
     if (to.matched[0].path === route.path && route.secure && !$store.state.auth.authenticated) {
-      return next('/about')
+      return next('/auth')
     }
   })
   // Proceed as normal

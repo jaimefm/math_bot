@@ -1,0 +1,41 @@
+{
+  "level": "Sandbox",
+  "prevLevel": "Conditionals",
+  "nextLevel": "None",
+  "show": true,
+  "steps": {
+    "1": {
+      "level": "Sandbox",
+      "step": "1",
+      "gridMap": [
+        "|E| |E| |E| |E| |E| |E| |E|  |E|   |E|  |E|",
+        "|E| |E| |E| |E| |E| |E| |E|  |E|   |E|  |E|",
+        "|E| |E| (R) |E| |E| ($) |E|  |E|   |E|  |E|",
+        "|E| |E| |E| |E| |E| |E| |E|  |E|   |E|  |E|",
+        "|E| |E| |E| |E| |E| [1] [10] [100] [1g] [10g]"
+      ],
+      "description": "Walk to the portal.",
+      "mainMax": -1,
+      "robotOrientation": 0,
+      "stagedEnabled": true,
+      "activeEnabled": true,
+      "stagedQty": -1,
+      "assignedStaged": [],
+      "preBuiltActive": [],
+      "cmdsAvailable": [
+        "moveRobotForwardOneSpot",
+        "changeRobotDirection",
+        "pickUpItem",
+        "setItemDown"
+      ],
+      "specialParameters": ["recursionRequired"],
+      "problem": "0",
+      "clearMain": false,
+      "initFocus": [],
+      "evalEachFrame": false,
+      "videoHints": [],
+      "prevStep": "None",
+      "nextStep": "None"
+    }
+  }
+}

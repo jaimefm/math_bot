@@ -3,6 +3,7 @@ package configuration
 import akka.http.scaladsl.model.Uri
 import akka.util.Timeout
 import com.google.inject.Inject
+import email.SendGridConfig
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -32,6 +33,9 @@ object ConfigFactory {
         final val issuer: String = "mathbot.oauth.github.issuer"
         final val user: String = "mathbot.oauth.github.user"
       }
+      object auth0 {
+        final val pemUrl: String = "mathbot.oauth.auth0.pemUrl"
+      }
     }
     object actors {
       final val timeout: String = "mathbot.actors.timeout"
@@ -41,14 +45,34 @@ object ConfigFactory {
       val url: String = "mathbot.mongodb.url"
     }
     object localauth {
-      val signupUrl : String = "mathbot.localauth.signupUrl"
-      val authUrl : String = "mathbot.localauth.authUrl"
-      val accountIdByteWidth : String = "mathbot.localauth.accountIdByteWidth"
-      val saltByteWidth : String = "mathbot.localauth.saltByteWidth"
-      val sessionIdByteWidth : String = "mathbot.localauth.sessionIdByteWidth"
-      val scryptIterationExponent : String = "mathbot.localauth.scryptIterationExponent"
-      val scryptBlockSize : String = "mathbot.localauth.sessionIdByteWidth"
-      val hashByteSize : String = "mathbot.localauth.hashByteSize"
+      val signupUrl: String = "mathbot.localauth.signupUrl"
+      val authUrl: String = "mathbot.localauth.authUrl"
+      val recoveryEmailUrl: String = "mathbot.localauth.recoveryEmailUrl"
+      val accountIdByteWidth: String = "mathbot.localauth.accountIdByteWidth"
+      val saltByteWidth: String = "mathbot.localauth.saltByteWidth"
+      val sessionIdByteWidth: String = "mathbot.localauth.sessionIdByteWidth"
+      val scryptIterationExponent: String = "mathbot.localauth.scryptIterationExponent"
+      val scryptBlockSize: String = "mathbot.localauth.sessionIdByteWidth"
+      val hashByteSize: String = "mathbot.localauth.hashByteSize"
+      val recoveryIdByteWidth: String = "mathbot.localauth.recoveryIdByteWidth"
+    }
+    object auth0 {
+      val pemUrl: String = "mathbot.auth0.pemUrl"
+      val url: String = "mathbot.auth0.url"
+      val grantType: String = "mathbot.auth0.grantType"
+      val realm: String = "mathbot.auth0.realm"
+      val audience: String = "mathbot.auth0.audience"
+      val clientId: String = "mathbot.auth0.clientId"
+      val clientSecret: String = "mathbot.auth0.clientSecret"
+    }
+    object sendgrid {
+      val secretKey: String = "mathbot.sendgrid.secretKey"
+    }
+    object admin {
+      val authIdByteWidth: String = "mathbot.admin.authIdByteWidth"
+      val approvedUrl: String = "mathbot.admin.approvedUrl"
+      val rejectedUrl: String = "mathbot.admin.rejectedUrl"
+      val custodianEmail: String = "mathbot.admin.custodianEmail"
     }
   }
 }
@@ -62,30 +86,31 @@ class ConfigFactory @Inject()(playConfig: play.api.Configuration) {
     }
   }
 
-  private def wrap[T](path : String, converter: String => T ) : T =
+  private def wrap[T](path: String, converter: String => T): T =
     playConfig.getString(path).map(converter(_)) getOrElse {
       throw new MissingConfigurationException(path)
     }
 
-  private def envGet(path: String) =
+  private def envGet(path: String) = {
     sys.env.get(path.replace(".", "_"))
+  }
 
   def googleApiConfig(): GoogleApiConfig = {
     GoogleApiConfig(
       oauthUrl = exWrap(mathbot.oauth.google.authUrl, path => playConfig.getString(path).map(Uri(_))),
-      authRedirectUri = exWrap(mathbot.oauth.google.redirectUrl, path => playConfig.getString(path).map(Uri(_))),
+      authRedirectUrl = exWrap(mathbot.oauth.google.redirectUrl, path => playConfig.getString(path).map(Uri(_))),
       authTokenUrl = exWrap(mathbot.oauth.google.tokenUrl, path => playConfig.getString(path).map(Uri(_))),
       clientId = exWrap(mathbot.oauth.google.clientId, envGet, playConfig.getString(_)),
       clientSecret = exWrap(mathbot.oauth.google.clientSecret, envGet, playConfig.getString(_)),
       scopes = exWrap(mathbot.oauth.google.scopes, playConfig.getStringList(_).map(s => s.asScala)),
-      oauthPemUri = exWrap(mathbot.oauth.google.pemUrl, path => playConfig.getString(path).map(Uri(_)))
+      oauthPemUrl = exWrap(mathbot.oauth.google.pemUrl, path => playConfig.getString(path).map(Uri(_)))
     )
   }
 
   def githubApiConfig(): GithubApiConfig =
     GithubApiConfig(
       oauthUrl = exWrap(mathbot.oauth.github.authUrl, path => playConfig.getString(path).map(Uri(_))),
-      authRedirectUri = exWrap(mathbot.oauth.github.redirectUrl, path => playConfig.getString(path).map(Uri(_))),
+      authRedirectUrl = exWrap(mathbot.oauth.github.redirectUrl, path => playConfig.getString(path).map(Uri(_))),
       authTokenUrl = exWrap(mathbot.oauth.github.tokenUrl, path => playConfig.getString(path).map(Uri(_))),
       publicEmailsUrl = exWrap(mathbot.oauth.github.publicEmails, path => playConfig.getString(path).map(Uri(_))),
       userUrl = exWrap(mathbot.oauth.github.user, path => playConfig.getString(path).map(Uri(_))),
@@ -93,6 +118,25 @@ class ConfigFactory @Inject()(playConfig: play.api.Configuration) {
       clientSecret = exWrap(mathbot.oauth.github.clientSecret, envGet, playConfig.getString(_)),
       scopes = exWrap(mathbot.oauth.github.scopes, playConfig.getStringList(_).map(s => s.asScala)),
       issuer = exWrap(mathbot.oauth.github.issuer, path => playConfig.getString(path))
+    )
+
+  def adminConfig: AdminConfig =
+    AdminConfig(
+      authIdByteWidth = wrap(mathbot.admin.authIdByteWidth, _.toInt),
+      rejectedUrl = wrap(mathbot.admin.rejectedUrl, Uri(_)),
+      approvedUrl = wrap(mathbot.admin.approvedUrl, Uri(_)),
+      custodianEmail = exWrap(mathbot.admin.custodianEmail, envGet, playConfig.getString(_))
+    )
+
+  def auth0Config: Auth0Config =
+    Auth0Config(
+      pemUrl = wrap(mathbot.auth0.pemUrl, _.toString),
+      url = wrap(mathbot.auth0.url, _.toString),
+      grantType = wrap(mathbot.auth0.grantType, _.toString),
+      realm = wrap(mathbot.auth0.realm, _.toString),
+      audience = wrap(mathbot.auth0.audience, _.toString),
+      clientId = exWrap(mathbot.auth0.clientId, envGet, playConfig.getString(_)),
+      clientSecret = exWrap(mathbot.auth0.clientSecret, envGet, playConfig.getString(_))
     )
 
   def actorConfig(): ActorConfig = {
@@ -109,15 +153,22 @@ class ConfigFactory @Inject()(playConfig: play.api.Configuration) {
     )
   }
 
-  def localAuthConfig : LocalAuthConfig =
+  def localAuthConfig: LocalAuthConfig =
     LocalAuthConfig(
       signupUrl = wrap(mathbot.localauth.signupUrl, Uri(_)),
       authUrl = wrap(mathbot.localauth.authUrl, Uri(_)),
+      recoveryEmailUrl = wrap(mathbot.localauth.recoveryEmailUrl, Uri(_)),
       accountIdByteWidth = wrap(mathbot.localauth.accountIdByteWidth, _.toInt),
       saltByteWidth = wrap(mathbot.localauth.saltByteWidth, _.toInt),
       sessionIdByteWidth = wrap(mathbot.localauth.sessionIdByteWidth, _.toInt),
       scryptIterationExponent = wrap(mathbot.localauth.scryptIterationExponent, _.toInt),
       scryptBlockSize = wrap(mathbot.localauth.scryptBlockSize, _.toInt),
-      hashByteSize = wrap(mathbot.localauth.hashByteSize, _.toInt)
+      hashByteSize = wrap(mathbot.localauth.hashByteSize, _.toInt),
+      recoveryIdByteWidth = wrap(mathbot.localauth.recoveryIdByteWidth, _.toInt)
+    )
+
+  def sendGridConfig: SendGridConfig =
+    SendGridConfig(
+      secretKey = exWrap(mathbot.sendgrid.secretKey, envGet, playConfig.getString(_))
     )
 }

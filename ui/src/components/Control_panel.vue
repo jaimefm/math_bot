@@ -6,7 +6,7 @@
 
     <div
       class="btn button-effect help-button"
-      @click="[videoHint.showVideo(), runCompiled.reset()]"
+      @click="[videoHint.showHint()]"
     >
       <stars
         :star-group="'star-spread'"
@@ -14,7 +14,6 @@
         :step="step"
         :step-stats="stepStats"></stars>
     </div>
-
   </div>
 </template>
 

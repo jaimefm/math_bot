@@ -23,8 +23,17 @@
 </template>
 
 <script>
+import api from '../../services/api'
 export default {
   name: 'MiddleSection',
+  computed: {
+    runCompiled () {
+      return this.$store.getters.getRunCompiled
+    },
+    tokenId () {
+      return this.$store.getters.getTokenId
+    }
+  },
   data () {
     return {
       imgResources: {
@@ -33,6 +42,15 @@ export default {
         'middleArchLine': 'https://res.cloudinary.com/doohickey/image/upload/v1522023645/Path_4_vwxssf.svg',
         'planetCluster': 'https://res.cloudinary.com/doohickey/image/upload/v1522023702/noun_922273_cc_atgmbu.svg'
       }
+    }
+  },
+  methods: {
+    goToSandBox () {
+      this.$store.dispatch('updateRunCompiled', this)
+      api.switchLevel({tokenId: this.tokenId, level: 'Sandbox', step: '1'}, (res) => {
+        this.$store.dispatch('updateStats', res.body)
+        this.$router.push({path: '/robot'})
+      })
     }
   },
   props: ['gotosite']

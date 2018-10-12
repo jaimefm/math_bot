@@ -1,9 +1,7 @@
 package models
 
-import utils.SecureIdentifier
-import actors.messages.PreparedStepData
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import utils.SecureIdentifier
 
 case class PlayerToken(
     token_id: String,
@@ -20,5 +18,5 @@ object PlayerToken {
   final val statsField = "stats"
   final val randomImagesField = "randomImages"
 
-  implicit val jsonFormat = Json.format[PlayerToken]
+  implicit val jsonFormat : OFormat[PlayerToken] = Json.format[PlayerToken]
 }

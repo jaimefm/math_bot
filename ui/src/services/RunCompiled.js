@@ -124,7 +124,7 @@ class RunCompiled extends GridAnimator {
   _hideLevelCongrats = () => this.context.$root.$emit('bv::hide::modal', 'level-congrats-modal')
 
   _showFreeHint (url) {
-    this.videoHint.showVideo(url)
+    this.videoHint.showFreeHint(url)
   }
 
   _initializeStep (stepData) {

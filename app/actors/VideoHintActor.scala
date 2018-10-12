@@ -58,8 +58,8 @@ object VideoHintActor {
 
   private val starExpiration = 3600 // bump up to 3600
 
-  def calculateRemainingTime(timeStamp: Long): Long = {
-    val expiredTime = timeStamp + starExpiration
+  def calculateRemainingTime(timeStamp: Long, expLength: Int): Long = {
+    val expiredTime = timeStamp + expLength
     val timeNow = generateTimestamp
     val remainingTime = expiredTime - timeNow
 
@@ -170,7 +170,7 @@ class VideoHintActor @Inject()(out: ActorRef,
       val videoUrl = embedURL(videoIds(hintCount - 1))
       out ! HintPrepared(playerToken.token_id,
                          videoUrl,
-                         RemainingTime(stars, level, step, calculateRemainingTime(timeStamp)))
+                         RemainingTime(stars, level, step, calculateRemainingTime(timeStamp, starExpiration)))
     /*
      * InsertNewVideo - if video has never been viewed for this level/step
      * */
@@ -192,7 +192,7 @@ class VideoHintActor @Inject()(out: ActorRef,
       val videoUrl = embedURL(videoIds(hintCount - 1))
       out ! HintPrepared(playerToken.token_id,
                          videoUrl,
-                         RemainingTime(stars, level, step, calculateRemainingTime(timestamp)))
+                         RemainingTime(stars, level, step, calculateRemainingTime(timestamp, starExpiration)))
     /*
      * InsertNewVideoRecord - if no videos have ever been watched during game
      * */
@@ -215,7 +215,7 @@ class VideoHintActor @Inject()(out: ActorRef,
       val videoUrl = embedURL(videoIds(hintCount - 1))
       out ! HintPrepared(playerToken.token_id,
                          videoUrl,
-                         RemainingTime(stars, level, step, calculateRemainingTime(timeStamp)))
+                         RemainingTime(stars, level, step, calculateRemainingTime(timeStamp, starExpiration)))
     /*
      * GetHintsTaken - returns a list of hints taken with a remaining time in minutes
      * also filters out expired videos.
@@ -223,10 +223,11 @@ class VideoHintActor @Inject()(out: ActorRef,
     case GetHintsTaken(tokenId) =>
       videoHintDAO.getHints(tokenId) map {
         case Some(hintsTaken) =>
-          val filterExpired = hintsTaken.videosWatched.filterNot(ht => calculateRemainingTime(ht.timeStamp) == 0)
+          val filterExpired =
+            hintsTaken.videosWatched.filterNot(ht => calculateRemainingTime(ht.timeStamp, starExpiration) == 0)
           videoHintDAO.update(hintsTaken.copy(videosWatched = filterExpired))
           out ! RemainingTimeList(tokenId, filterExpired.map { ht =>
-            RemainingTime(ht.stars, ht.level, ht.step, calculateRemainingTime(ht.timeStamp))
+            RemainingTime(ht.stars, ht.level, ht.step, calculateRemainingTime(ht.timeStamp, starExpiration))
           })
         case None => out ! RemainingTimeList(tokenId, List.empty[RemainingTime])
       }

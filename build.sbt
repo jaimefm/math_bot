@@ -18,17 +18,23 @@ libraryDependencies ++= Seq(
   "org.mongodb.scala" %% "mongo-scala-driver" % "2.3.0",
   ws,
 
+  "com.digitaltangible" %% "play-guard" % "2.0.0",
+
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-xml" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.pauldijou" %% "jwt-play-json" % "0.16.0",
+  "com.sendgrid" % "sendgrid-java" % "4.1.2",
+  "com.lihaoyi" %% "scalatags" % "0.6.7",
 
-  // Test
+
+// Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test,
   "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.5" % Test,
   "io.gatling" % "gatling-test-framework" % "2.2.5" % Test,
-  "org.mockito" % "mockito-all" % "1.9.5" % Test
+  "org.mockito" % "mockito-all" % "1.9.5" % Test,
+  "org.scalaj" %% "scalaj-http" % "2.3.0"
 )
 
 // The Play project itself

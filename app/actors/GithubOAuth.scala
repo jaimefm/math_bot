@@ -1,20 +1,20 @@
 package actors
 
-import actors.messages.auth.{ GithubTokensFromCodeSuccess, RequestTokensFromCode, TokensFromCodeFailure }
+import actors.messages.auth.{GithubTokensFromCodeSuccess, RequestTokensFromCode, TokensFromCodeFailure}
 import akka.actor.Actor
 import akka.http.scaladsl.model.Uri.Query
-import akka.http.scaladsl.model.{ headers, _ }
+import akka.http.scaladsl.model.{headers, _}
 import akka.http.scaladsl.util.FastFuture
-import akka.http.scaladsl.{ Http, HttpExt }
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.pattern.pipe
 import akka.stream.ActorMaterializer
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import configuration.GithubApiConfig
-import loggers.{ AkkaSemanticLog, SemanticLog }
+import loggers.{AkkaSemanticLog, SemanticLog}
 import models._
-import utils.{ AkkaToPlayMarshaller, SecureIdentifier }
+import utils.{AkkaToPlayMarshaller, SecureIdentifier}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
 @Singleton
@@ -29,7 +29,6 @@ class GithubOAuth @Inject()(
 
   implicit val executionContext: ExecutionContext = context.dispatcher
   implicit val materializer: akka.stream.Materializer = ActorMaterializer()
-
 
   val http: HttpExt = Http(context.system)
 
@@ -51,7 +50,7 @@ class GithubOAuth @Inject()(
             "code" -> code,
             "client_id" -> config.clientId,
             "client_secret" -> config.clientSecret,
-            "redirect_uri" -> config.authRedirectUri.toString(),
+            "redirect_uri" -> config.authRedirectUrl.toString(),
             "state" -> sessionId.toString
           ).toEntity
         )
@@ -143,14 +142,15 @@ class GithubOAuth @Inject()(
               sub = user.id.toString,
               email = emails.find(_.primary).map(_.email).orElse(user.email).getOrElse(""),
               name = user.name,
-              picture = user.avatar_url
+              picture = Some(user.avatar_url)
             )
-            GithubTokensFromCodeSuccess(sessionId, GithubTokens(
-              access_token = tokens.access_token,
-              scope = tokens.scope.split(':'),
-              token_type = tokens.token_type,
-              id_token = jwt
-            ))
+            GithubTokensFromCodeSuccess(sessionId,
+                                        GithubTokens(
+                                          access_token = tokens.access_token,
+                                          scope = tokens.scope.split(':'),
+                                          token_type = tokens.token_type,
+                                          id_token = jwt
+                                        ))
           case (Right(reason), _, _) =>
             TokensFromCodeFailure(sessionId, config.oauthUrl, reason)
           case (_, Right(reason), _) =>

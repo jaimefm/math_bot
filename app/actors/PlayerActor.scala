@@ -413,6 +413,11 @@ class PlayerActor()(system: ActorSystem,
     case DeactivateFunc(tokenId, activeIndex, stagedIndex) =>
       val oldIndex = activeIndex.toInt
       val newIndex = stagedIndex.toInt
+
+      def deleteAllInstances(createdId: String, funcList: List[FuncToken]): List[FuncToken] = funcList map { ft =>
+        ft.copy(func = ft.func.map(p => p.filterNot(_.created_id == createdId)))
+      }
+
       (for {
         playerTokenOpt <- playerTokenDAO.getToken(tokenId)
         playerToken = playerTokenOpt.get
@@ -422,9 +427,14 @@ class PlayerActor()(system: ActorSystem,
           .copy(name = Some(""), func = Some(List.empty[FuncToken]), color = "default")
         updatedStagedFuncs = lambdas.stagedFuncs
           .take(newIndex) ++ List(funcToMove) ++ lambdas.stagedFuncs.drop(newIndex)
-        updatedActiveFuncs = lambdas.activeFuncs.take(oldIndex) ++ lambdas.activeFuncs.drop(oldIndex + 1)
+        updatedActiveFuncs = deleteAllInstances(
+          funcToMove.created_id,
+          lambdas.activeFuncs.take(oldIndex) ++ lambdas.activeFuncs.drop(oldIndex + 1)
+        )
+        updatedMainFunc = lambdas.main.func.map(_.filterNot(_.created_id == funcToMove.created_id))
         updatedLambdas = lambdas.copy(stagedFuncs = indexFunctions(updatedStagedFuncs),
-                                      activeFuncs = indexFunctions(updatedActiveFuncs))
+                                      activeFuncs = indexFunctions(updatedActiveFuncs),
+                                      main = lambdas.main.copy(func = updatedMainFunc))
         updatedToken = playerToken.copy(
           lambdas = Some(updatedLambdas)
         )

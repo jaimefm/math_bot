@@ -4,6 +4,7 @@ import actors.GoogleApiHelpers.GoogleTokens
 import actors.messages.auth.{ GoogleTokensFromCodeSuccess, RequestTokensFromCode, TokensFromCodeFailure }
 import akka.actor.Actor
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.util.FastFuture
 import akka.http.scaladsl.{ Http, HttpExt }
 import akka.pattern.pipe
 import akka.stream.ActorMaterializer
@@ -46,14 +47,13 @@ class GoogleOAuth @Inject()(
             "code" -> code,
             "client_id" -> config.clientId,
             "client_secret" -> config.clientSecret,
-            "redirect_uri" -> config.authRedirectUri.toString(),
+            "redirect_uri" -> config.authRedirectUrl.toString(),
             "grant_type" -> "authorization_code"
           ).toEntity
         )
       )
       tokensOrError <- AkkaToPlayMarshaller.unmarshalToPlayJson(response)
-    } yield {
-      tokensOrError match {
+      validatedOrError = tokensOrError match {
         case Left(Some(t)) =>
           val tokens = t.asInstanceOf[JsObject]
           jwtTokenParser.parseAndVerify(tokens("id_token").as[String]) match {
@@ -64,12 +64,15 @@ class GoogleOAuth @Inject()(
               refresh_token = tokens.value.get("refresh_token").map(_.as[String]),
               id_token = idToken
             ))
-            case _ => Right("Unable to verify jwt")
+            case _ =>
+              Right("Unable to verify jwt")
           }
-        case Left(None) => Right("Unable to verity jwt")
-        case Right(reason) => Right(s"Status: ${reason._1} reason: ${reason._2}")
+        case Left(None) =>
+          Right("Unable to verity jwt")
+        case Right(reason) =>
+          Right(s"Status: ${reason._1} reason: ${reason._2}")
       }
-    }
+    } yield validatedOrError
 
   }
 

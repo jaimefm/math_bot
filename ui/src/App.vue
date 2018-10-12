@@ -1,13 +1,41 @@
 <template>
   <div id="app">
+    <b-modal
+      id="cookie-enable-modal"
+      ref="cookie-enable-modal"
+      v-model="auth.cookiesEnabled"
+      :no-close-on-backdrop="true"
+      :no-close-on-esc="true"
+      :hide-footer="true"
+      :hide-header="true"
+    >
+      <div>
+        <img :src="permanentImages.instructionsRobot"/>
+        <m-b-header :color="'#000000'"></m-b-header>
+        <div>Says...</div>
+      </div>
+      <div
+        style="font-size: 18px; background-color: rgba(255, 69, 0, 0.8);"
+      >
+        <p class="my-4">Cookies must be enabled to use Mathbot</p>
+      </div>
+      <ul
+        style="list-style: none; margin: 0 auto; display: inline-block; text-align: left;"
+      >
+        <li><a href="https://support.google.com/accounts/answer/61416?co=GENIE.Platform%3DDesktop&hl=en" target="_blank">Chrome Instructions</a></li>
+        <li><a href="https://support.mozilla.org/en-US/kb/enable-and-disable-cookies-website-preferences" target="_blank">FireFox Instructions</a></li>
+        <li><a href="https://support.microsoft.com/en-us/help/17442/windows-internet-explorer-delete-manage-cookies" target="_blank">Internet Explorer Instructions</a></li>
+        <li><a href="https://support.google.com/accounts/answer/61416?co=GENIE.Platform%3DDesktop&hl=en" target="_blank">Safari Instructions</a></li>
+      </ul>
+    </b-modal>
+    <messages></messages>
     <router-view></router-view>
   </div>
 </template>
 
 <script>
-// import api from './services/api'
-// import utils from './services/utils'
-
+import Messages from './components/Messages'
+import MBHeader from './components/Mathbot_header'
 export default {
   name: 'app',
   mounted () {
@@ -16,7 +44,14 @@ export default {
   computed: {
     auth () {
       return this.$store.getters.getAuth
+    },
+    permanentImages () {
+      return this.$store.getters.getPermanentImages
     }
+  },
+  components: {
+    Messages,
+    MBHeader
   }
 }
 </script>

@@ -33,7 +33,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>
   <link rel="icon" href="#">
   <!-- Font awesome-->
-  <script src="https://use.fontawesome.com/e026dc01ac.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <!-- Marketing page dependencies -->
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/deqjemwcu/image/upload/v1522421518/misc/mathbotLarge.ico">
@@ -44,8 +44,68 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.2.0/aos.js"></script>
   <!-- auth0-js-->
   <!--<script type="text/javascript" src="node_modules/auth0-js/build/auth0.js"></script>-->
+  <noscript>
+    <div style="
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background: url('https://res.cloudinary.com/deqjemwcu/image/upload/v1522347137/misc/profileSpace.png') no-repeat;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      font-family: Helvetica, Arial, sans-serif;
+    ">
+      <div style="
+        display: flex;
+        flex-direction: column;
+        width: 498px;
+        height: min-content;
+        max-width: 100vw;
+        margin-top: 3vh;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 3px;
+      ">
+        <div style="
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+          align-items: center;
+          padding: 10px;
+        ">
+          <img src="https://res.cloudinary.com/deqjemwcu/image/upload/v1522347656/misc/instructionsRobot_bg7561.svg" />
+          <h1 style="
+            font-size: 38px;
+            line-height: 38px;
+            font-weight: 100;
+            margin: 0 auto;
+          "
+          >MATH<span style="color: #B8E986">_</span>BOT</h1>
+          <div>Says...</div>
+        </div>
+        <div style="
+          font-size: 18px;
+          background-color: rgba(255, 69, 0, 0.8);
+          padding: 0 20px 0 20px;
+          margin-top: 20px;
+        ">
+          <p>
+            Mathbot requires JavaScript to be enabled to ensure the best experience possible.</p>
+        </div>
+        <ul style="
+          list-style: none;
+          margin: 20px auto;
+        ">
+          <li><a href="https://www.enable-javascript.com/#chrome" target="_blank">Chrome Instructions</a></li>
+          <li><a href="https://www.enable-javascript.com/#firefox" target="_blank">FireFox Instructions</a></li>
+          <li><a href="https://www.enable-javascript.com/#ie" target="_blank">Internet Explorer Instructions</a></li>
+          <li><a href="https://www.enable-javascript.com/#safari" target="_blank">Safari Instructions</a></li>
+        </ul>
+      </div>
+    </div>
+  </noscript>
 </head>
-<body>
+<body style="margin: 0;">
 <div id="app" class="container-fluid"></div>
 
 <script>

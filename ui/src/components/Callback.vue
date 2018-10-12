@@ -15,7 +15,8 @@ export default {
     }
   },
   data () {
-    return {}
+    return {
+    }
   },
   components: {
     SplashScreen

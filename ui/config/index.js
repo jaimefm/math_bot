@@ -49,7 +49,7 @@ module.exports = {
   },
 
   build: {
-    version: '0.03-beta-6815053638',
+    version: '0.03-beta-1266222622',
     // Template for index.html
     index: path.resolve(__dirname, '../../public/index.html'),
 

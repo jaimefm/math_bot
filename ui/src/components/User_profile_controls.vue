@@ -8,8 +8,8 @@
       <mathbot-header :font-size="headerFont" :line-height="headerFont + 2"></mathbot-header>
       <div class="profile-text-footer">
         <span class="nav-links about" @click="gotoMarketing">About</span>
-        <span class="nav-links sign-in" v-if="!auth.authenticated" @click="auth.login()">Sign In</span>
-        <span class="nav-links sign-out" v-else @click="auth.logout()">Sign Out</span>
+        <span class="nav-links sign-in" v-if="!auth.authenticated" @click="auth.login">Sign In</span>
+        <span class="nav-links sign-out" v-else @click="auth.logout">Sign Out</span>
       </div>
     </div>
   </div>

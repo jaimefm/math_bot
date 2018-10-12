@@ -54,6 +54,7 @@
       "initFocus": [],
       "evalEachFrame": true,
       "videoHints": ["w01mjed8ld0"],
+      "freeHint": "w01mjed8ld0",
       "prevStep": "None",
       "nextStep": "2"
     },

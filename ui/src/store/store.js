@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import VueDefaultValue from 'vue-default-value/dist/vue-default-value'
 import permanentImages from '../assets/assets'
 import Message from '../services/Message'
-import AuthService from '../services/AuthService'
+import { AuthService } from '../services/AuthService'
 import utils from '../services/utils'
 // import api from '../services/api'
 import VideoTimer from '../services/VideoTimer'
@@ -57,7 +57,6 @@ export default new Vuex.Store({
     currentFunction: 'main',
     programPanelShowing: false,
     editFunctionShowing: false,
-    currentUser: JSON.parse(localStorage.getItem('profile')),
     fullscreen: false,
     robotDeactivated: false,
     lock: {},
@@ -85,10 +84,17 @@ export default new Vuex.Store({
     },
     videoTimers: {},
     editFunctionEvent: {},
+    authErrors: [],
     runCompiled: {},
     videoHint: {}
   },
   mutations: {
+    CLEAR_AUTH_ERRORS (state) {
+      state.authErrors = []
+    },
+    PUSH_AUTH_ERRORS (state, msg) {
+      state.authErrors.push(msg)
+    },
     UPDATE_VIDEO_HINT (state, context) {
       state.videoHint = new VideoHint(context)
     },
@@ -215,6 +221,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    clearAuthErrors ({commit}) {
+      commit('CLEAR_AUTH_ERRORS')
+    },
+    pushAuthErrors ({commit}, msg) {
+      commit('PUSH_AUTH_ERRORS', msg)
+    },
     updateVideoHint ({commit}, context) {
       commit('UPDATE_VIDEO_HINT', context)
     },
@@ -337,12 +349,13 @@ export default new Vuex.Store({
     }
   },
   getters: {
+    getAuthErrors: state => state.authErrors,
     getVideoHint: state => state.videoHint,
     getRunCompiled: state => state.runCompiled,
     getEditFunctionEvent: state => state.editFunctionEvent,
     getVideoTimers: state => state.videoTimers,
     getHintShowing: state => state.hintShowing,
-    getCurrentUser: state => state.currentUser,
+    getCurrentUser: state => state.auth.userToken,
     getStepData: state => state.stepData,
     getSplashScreenShowing: state => state.splashScreenShowing,
     getPointerPosition: state => state.pointerPosition,

@@ -2,7 +2,6 @@
 <div class="social-sharing">
   <social-sharing url="https://mathbot.com"
                   :title="message"
-                  hashtags="mathbot, math_bot, math, programming, jwweatherman, weathermaniam"
                   twitter-user="JWWeatherman_"
                   inline-template>
     <div class="social-links">
@@ -26,7 +25,13 @@
 <script>
 export default {
   name: 'Social_sharing',
-  props: ['message']
+  data () {
+    return {
+      message: `
+        I just found this cool site: https://mathbot.com. It's a fun little game, but I guess it teaches you programming & math too. I'm enjoying it. It's very satisfying when you get that little robot to finally bend to your will! **World Domination Face**
+      `
+    }
+  }
 }
 </script>
 

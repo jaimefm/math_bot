@@ -15,7 +15,7 @@
     <div class="text-minor">
       <div>Tell your friends!</div>
     </div>
-    <social-sharing :message="socialMessage" :size="'3rem'"></social-sharing>
+    <social-sharing :size="'3rem'"></social-sharing>
     <div slot="modal-footer" class="row" style="width: 100%; display: flex; justify-content: space-between;">
       <b-btn
         size="md"
